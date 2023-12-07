@@ -4,6 +4,7 @@ import threading
 
 ## MAIN FUNCATION
 ##Loop to allow the user to enter a valid reset option
+LASTPORT = 445
 def restart_program():
     while True:
         restart = input("Do you want to try again? (yes/no): ").lower()
@@ -28,30 +29,36 @@ def main():
             print("Invalid IP address format. Please enter a valid IP address. Example (192.168.1.1)")
             target = input("Enter the target IP address or hostname: ")
 
-    ##Propmts user for there scan mode and runs the scan type
+    ##Prompts user for their scan mode and runs the scan type
     scan_mode = input("Enter scan mode (quick/thorough): ").lower()
+
     if scan_mode == 'quick':
         filter_option = input("Enter filter: (open/closed/all): ").lower()
         quick_scan(target, filter_option)
 
     elif scan_mode == 'thorough':
+        ##Validates whether the input is in proper configuration with possible ports (0-65535)
         start_port = int(input("Enter the initial port: "))
-        end_port = int(input("Enter the last port: "))
-        checker = True
-
-        ##Validates wether the input is in proper configurion with possible ports (0-65535)
         if start_port <= 0 or start_port > 65535:
             print("Invalid Start Port")
-        elif end_port <= 0 or end_port > 65535:
+            restart_program()
+
+        end_port = int(input("Enter the last port: "))
+        if end_port <= 0 or end_port > 65535:
             print("Invalid End Port")
-        elif checker:
-            print(f"Scanning ports {start_port} to {end_port} on {target}...\n")
+            restart_program()
+
+        checker = True
+        LASTPORT = end_port
+
+        if checker:
             filter_option = input("Enter filter: (open/closed/all): ").lower()
+            print(f"Scanning ports {start_port} to {end_port} on {target}...\n")
             thorough_scan(target, start_port, end_port, filter_option)
 
     else:
-        print("Invalid input for our scan mode option. Please enter 'quick' or 'thorough'.")
-        restart_program()
+        print("Invalid input for our scan mode option. Please enter 'quick' or 'thorough'")
+
 
 ###################################################################################################################################
 ##1. Port Filtering
@@ -77,14 +84,14 @@ def specific_ports(target, port, is_open):
             print(f"Port {port} timed out | Error: socket.timeout")
 
     except Exception as e:
-        print(f"An Unknown error occurred while scanning port {port}: {e}")
+        print(f"Port {port} Had An Unknown error occurred: {e}")
 
     finally:
         sock.close()
 ###################################################################################################################################
 ##2. Scan Modes
 def quick_scan(target, filter_option):
-    common_ports = [80, 443, 21, 22, 445]
+    common_ports = [80, 443, 21, 22, 445,]
 
     ##Creates a thread for each port in the range
     threads = []
@@ -134,27 +141,28 @@ def thorough_scan(target, start_port, end_port, filter_option):
 ##Scans single port
 def single_scan(target, port):
     try:
-        ##Create a socket object
+        # Create a socket object
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.settimeout(1)  # Set a timeout for the connection attempt
 
-        ##Attempt to connect to the target and port
+        # Attempt to connect to the target and port
         result = sock.connect((target, port))
-        print(f"Port {port} was found.")
-
     except ConnectionRefusedError:
-        print(f"Port {port} is closed | Error: ConnectionRefusedError.")
+        print(f"Port {port} is closed | Error: ConnectionRefusedError")
 
     except socket.timeout:
-        print(f"Port {port} timed out | Error: socket.timeout.")
+        print(f"Port {port} timed out | Error: socket.timeout")
 
     except Exception as e:
-        print(f"An error occurred while scanning port {port}: {e} | Would you like to restart?")
+        print(f"Port {port} occurred an error: {e}")
 
     finally:
-        print("Would you like to restart?")
-        restart_program()
         sock.close()
+
+        # Check if the current port is the last one
+        if port == LASTPORT:
+            restart_program()
+
 
 
 ###################################################################################################################################
