@@ -27,7 +27,7 @@ def main():
     else:
         print("Invalid input for our scan mode option. Please enter 'quick' or 'thorough'.")
 
-        # Use a loop to allow the user to enter a valid option
+        ##Loop to allow the user to enter a valid option
         while True:
             restart = input("Do you want to try again? (yes/no): ").lower()
             if restart == 'yes':
@@ -95,11 +95,11 @@ def thorough_scan(target, start_port, end_port, filter_option):
 ##Scans single port
 def single_scan(target, port):
     try:
-        # Create a socket object
+        ##Create a socket object
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.settimeout(1)  # Set a timeout for the connection attempt
 
-        # Attempt to connect to the target and port
+        ##Attempt to connect to the target and port
         result = sock.connect((target, port))
         print(f"Port {port} is open")
 
