@@ -26,7 +26,18 @@ def main():
 
     else:
         print("Invalid input for our scan mode option. Please enter 'quick' or 'thorough'.")
-        main()
+
+        # Use a loop to allow the user to enter a valid option
+        while True:
+            restart = input("Do you want to try again? (yes/no): ").lower()
+            if restart == 'yes':
+                main()
+            elif restart == 'no':
+                print("Exiting the program.")
+                break
+            else:
+                print("Invalid option. Please enter 'yes' or 'no'.")
+
 ###################################################################################################################################
 ##1. Port Filtering
 def specific_ports(target, port, is_open):
@@ -96,7 +107,7 @@ def single_scan(target, port):
         print(f"Port {port} is closed | Error: ConnectionRefusedError")
 
     except socket.timeout:
-        print(f"Port {port} timed out | Error: socket.closed")
+        print(f"Port {port} timed out | Error: socket.timeout")
 
     except Exception as e:
         print(f"An error occurred while scanning port {port}: {e}")
@@ -138,21 +149,21 @@ def single_scan(target, port):
 
 
 ###################################################################################################################################
-##7. Output CustomizaƟon
+##7. Output Customizaon
 
 
 
 
 
 ###################################################################################################################################
-##8. Port Range ValidaƟon
+##8. Port Range Validaon
 
 
 
 
 
 ###################################################################################################################################
-##9. Service DetecƟon
+##9. Service Detecon
 
 
 
