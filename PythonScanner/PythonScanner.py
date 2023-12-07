@@ -32,15 +32,22 @@ def main():
         quick_scan(target, filter_option)
 
     elif scan_mode == 'thorough':
-        filter_option = input("Enter filter: (open/closed/all): ").lower()
         start_port = int(input("Enter the initial port: "))
         end_port = int(input("Enter the last port: "))
-        print(f"Scanning ports {start_port} to {end_port} on {target}...\n")
-        thorough_scan(target, start_port, end_port, filter_option)
+        checker = True
+
+        if start_port <= 0 or start_port > 65535:
+            print("Invalid Start Port")
+        elif end_port <= 0 or end_port > 65535:
+            print("Invalid End Port")
+        elif checker:
+            print(f"Scanning ports {start_port} to {end_port} on {target}...\n")
+            filter_option = input("Enter filter: (open/closed/all): ").lower()
+            thorough_scan(target, start_port, end_port, filter_option)
 
     else:
-        print("Invalid scan mode. Please enter 'quick' or 'thorough'.")
-
+        print("Invalid input for our scan mode option. Please enter 'quick' or 'thorough'.")
+        main()
 ###################################################################################################################################
 ##1. Port Filtering
 def specific_ports(target, port, is_open):
@@ -58,14 +65,14 @@ def specific_ports(target, port, is_open):
 
     except ConnectionRefusedError:
         if not is_open:
-            print(f"Port {port} is closed")
+            print(f"Port {port} is closed | Error: ConnecƟonRefusedError")
 
     except socket.timeout:
         if not is_open:
-            print(f"Port {port} timed out")
+            print(f"Port {port} timed out | Error: socket.Ɵmeout")
 
     except Exception as e:
-        print(f"An error occurred while scanning port {port}: {e}")
+        print(f"An Unknown error occurred while scanning port {port}: {e}")
 
     finally:
         sock.close()
