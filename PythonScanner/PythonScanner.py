@@ -1,28 +1,7 @@
 import socket
 
-##Given CODE
-def scan_port(target, port):
-    try:
-        # Create a socket object
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.settimeout(1)  # Set a timeout for the connection attempt
 
-        # Attempt to connect to the target and port
-        result = sock.connect((target, port))
-        print(f"Port {port} is open")
-
-    except ConnectionRefusedError:
-        print(f"Port {port} is closed")
-
-    except socket.timeout:
-        print(f"Port {port} timed out")
-
-    except Exception as e:
-        print(f"An error occurred while scanning port {port}: {e}")
-
-    finally:
-        sock.close()
-## Given CODE
+## MAIN FUNCATION
 def main():
     target = input("Enter the target IP address or hostname: ")
     scan_mode = input("Enter scan mode (quick/thorough): ").lower()
@@ -65,11 +44,11 @@ def specific_ports(target, port, is_open):
 
     except ConnectionRefusedError:
         if not is_open:
-            print(f"Port {port} is closed | Error: ConnecƟonRefusedError")
+            print(f"Port {port} is closed | Error: ConnectionRefusedError")
 
     except socket.timeout:
         if not is_open:
-            print(f"Port {port} timed out | Error: socket.Ɵmeout")
+            print(f"Port {port} timed out | Error: socket.timeout")
 
     except Exception as e:
         print(f"An Unknown error occurred while scanning port {port}: {e}")
@@ -87,7 +66,7 @@ def quick_scan(target, filter_option):
         elif filter_option == 'closed':
             specific_ports(target, port, False)
         elif filter_option == 'all':
-            scan_port(target, port)
+            single_scan(target, port)
         else:
             print("Invalid filter option. Please enter 'open', 'closed', or 'all'.")
 
@@ -98,11 +77,32 @@ def thorough_scan(target, start_port, end_port, filter_option):
         elif filter_option == 'closed':
             specific_ports(target, port, False)
         elif filter_option == 'all':
-            scan_port(target, port)
+            single_scan(target, port)
         else:
             print("Invalid filter option. Please enter 'open', 'closed', or 'all'.")
 
+##Scans single port
+def single_scan(target, port):
+    try:
+        # Create a socket object
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.settimeout(1)  # Set a timeout for the connection attempt
 
+        # Attempt to connect to the target and port
+        result = sock.connect((target, port))
+        print(f"Port {port} is open")
+
+    except ConnectionRefusedError:
+        print(f"Port {port} is closed | Error: ConnectionRefusedError")
+
+    except socket.timeout:
+        print(f"Port {port} timed out | Error: socket.closed")
+
+    except Exception as e:
+        print(f"An error occurred while scanning port {port}: {e}")
+
+    finally:
+        sock.close()
 
 
 ###################################################################################################################################
@@ -129,6 +129,49 @@ def thorough_scan(target, start_port, end_port, filter_option):
 
 ###################################################################################################################################
 ##6. Logging and Reporting
+
+
+
+
+
+
+
+
+###################################################################################################################################
+##7. Output CustomizaƟon
+
+
+
+
+
+###################################################################################################################################
+##8. Port Range ValidaƟon
+
+
+
+
+
+###################################################################################################################################
+##9. Service DetecƟon
+
+
+
+
+###################################################################################################################################
+##10. IP Range Scanning
+
+
+
+
+
+
+
+
+
+
+###################################################################################################################################
+##11. Security Scanning
+
 
 
 
