@@ -25,12 +25,12 @@ def scan_port(target, port):
 ## Given CODE
 def main():
     target = input("Enter the target IP address or hostname: ")
-    start_port = int(input("Enter the starting port: "))
-    end_port = int(input("Enter the ending port: "))
+    start_port = int(input("Enter the inital port: "))
+    end_port = int(input("Enter the last port: "))
     
-    filter_option = input("Enter filter option (open/closed/all): ").lower()
+    filter_option = input("Enter filter: (open/closed/all): ").lower()
 
-    print(f"Scanning ports {start_port} to {end_port} on {target}...\n")
+    print(f"Scanning ports {start_port} to {end_port} on {target}... :3\n")
 
     for port in range(start_port, end_port + 1):
         if filter_option == 'open':
@@ -110,5 +110,5 @@ def specific_ports(target, port, is_open):
 
 ###################################################################################################################################
 if __name__ == "__main__":
-    main
+    main()
     
