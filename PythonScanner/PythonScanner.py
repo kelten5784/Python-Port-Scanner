@@ -1,11 +1,35 @@
 import socket
-
+import ipaddress
+import threading
 
 ## MAIN FUNCATION
+##Loop to allow the user to enter a valid reset option
+def restart_program():
+    while True:
+        restart = input("Do you want to try again? (yes/no): ").lower()
+        if restart == 'yes':
+            main()
+        elif restart == 'no':
+            print("Exiting the program.")
+            return  ##Add a return statement to exit the loop
+        else:
+            print("Invalid option. Please enter 'yes' or 'no'.")
+
+
 def main():
     target = input("Enter the target IP address or hostname: ")
-    scan_mode = input("Enter scan mode (quick/thorough): ").lower()
 
+    ##Validate whether the input is a valid IP address
+    while True:
+        try:
+            ipaddress.ip_address(target)
+            break  ##Exit loop if the user input is a valid IP address
+        except ValueError:
+            print("Invalid IP address format. Please enter a valid IP address. Example (192.168.1.1)")
+            target = input("Enter the target IP address or hostname: ")
+
+    ##Propmts user for there scan mode and runs the scan type
+    scan_mode = input("Enter scan mode (quick/thorough): ").lower()
     if scan_mode == 'quick':
         filter_option = input("Enter filter: (open/closed/all): ").lower()
         quick_scan(target, filter_option)
@@ -15,6 +39,7 @@ def main():
         end_port = int(input("Enter the last port: "))
         checker = True
 
+        ##Validates wether the input is in proper configurion with possible ports (0-65535)
         if start_port <= 0 or start_port > 65535:
             print("Invalid Start Port")
         elif end_port <= 0 or end_port > 65535:
@@ -26,17 +51,7 @@ def main():
 
     else:
         print("Invalid input for our scan mode option. Please enter 'quick' or 'thorough'.")
-
-        ##Loop to allow the user to enter a valid option
-        while True:
-            restart = input("Do you want to try again? (yes/no): ").lower()
-            if restart == 'yes':
-                main()
-            elif restart == 'no':
-                print("Exiting the program.")
-                break
-            else:
-                print("Invalid option. Please enter 'yes' or 'no'.")
+        restart_program()
 
 ###################################################################################################################################
 ##1. Port Filtering
@@ -69,8 +84,20 @@ def specific_ports(target, port, is_open):
 ###################################################################################################################################
 ##2. Scan Modes
 def quick_scan(target, filter_option):
-    common_ports = [80, 443, 21, 22]
+    common_ports = [80, 443, 21, 22, 445]
 
+    ##Creates a thread for each port in the range
+    threads = []
+    for port in common_ports:
+        thread = threading.Thread(target=specific_ports, args=(target, port, True))
+        threads.append(thread)
+        thread.start()
+
+    ##Waits for all threads to finish
+    for thread in threads:
+        thread.join()
+
+    ##Filter results based on user input
     for port in common_ports:
         if filter_option == 'open':
             specific_ports(target, port, True)
@@ -82,6 +109,18 @@ def quick_scan(target, filter_option):
             print("Invalid filter option. Please enter 'open', 'closed', or 'all'.")
 
 def thorough_scan(target, start_port, end_port, filter_option):
+    ##Create a thread for each port in the range
+    threads = []
+    for port in range(start_port, end_port + 1):
+        thread = threading.Thread(target=specific_ports, args=(target, port, True))
+        threads.append(thread)
+        thread.start()
+
+    ##Wait for all threads to finish
+    for thread in threads:
+        thread.join()
+
+    ##Filter results based on user input
     for port in range(start_port, end_port + 1):
         if filter_option == 'open':
             specific_ports(target, port, True)
@@ -101,16 +140,16 @@ def single_scan(target, port):
 
         ##Attempt to connect to the target and port
         result = sock.connect((target, port))
-        print(f"Port {port} is open")
+        print(f"Port {port} was found. | Would you like to restart?")
 
     except ConnectionRefusedError:
-        print(f"Port {port} is closed | Error: ConnectionRefusedError")
+        print(f"Port {port} is closed | Error: ConnectionRefusedError. | Would you like to restart?")
 
     except socket.timeout:
-        print(f"Port {port} timed out | Error: socket.timeout")
+        print(f"Port {port} timed out | Error: socket.timeout. | Would you like to restart?")
 
     except Exception as e:
-        print(f"An error occurred while scanning port {port}: {e}")
+        print(f"An error occurred while scanning port {port}: {e} | Would you like to restart?")
 
     finally:
         sock.close()
