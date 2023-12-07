@@ -5,16 +5,26 @@ import threading
 ## MAIN FUNCATION
 ##Loop to allow the user to enter a valid reset option
 LASTPORT = 445
+def save_file():
+    filename = input("Enter the filename to save the port list to (e.g., log.txt): ")
+    with open(filename, 'w') as file:
+        file.write()
+    print(f"Scanner file saved to {filename}")
+
 def restart_program():
     while True:
         restart = input("Do you want to try again? (yes/no): ").lower()
         if restart == 'yes':
             main()
         elif restart == 'no':
+            save_log = input("Do you want to save the console log to a scan list file? (yes/no): ").lower()
+            if save_log == 'yes':
+                save_file()
             print("Exiting the program.")
             return  ##Add a return statement to exit the loop
         else:
-            print("Invalid option. Please enter 'yes' or 'no'.")
+            print("Invalid option. Please enter 'yes' or 'no.'")
+
 
 
 def main():
@@ -53,8 +63,8 @@ def main():
 
         if checker:
             filter_option = input("Enter filter: (open/closed/all): ").lower()
-            print(f"Scanning ports {start_port} to {end_port} on {target}...\n")
             thorough_scan(target, start_port, end_port, filter_option)
+            print(f"Scanning ports {start_port} to {end_port} on {target}...\n")
 
     else:
         print("Invalid input for our scan mode option. Please enter 'quick' or 'thorough'")
@@ -89,7 +99,7 @@ def specific_ports(target, port, is_open):
     finally:
         sock.close()
 ###################################################################################################################################
-##2. Scan Modes
+##2. Scan Modes ##3. Custom Port Lists 
 def quick_scan(target, filter_option):
     common_ports = [80, 443, 21, 22, 445,]
 
@@ -115,20 +125,29 @@ def quick_scan(target, filter_option):
         else:
             print("Invalid filter option. Please enter 'open', 'closed', or 'all'.")
 
+##Main Funcation for a through scan
 def thorough_scan(target, start_port, end_port, filter_option):
-    ##Create a thread for each port in the range
+    use_port_list = input("Do you want to use a port list? (yes/no): ").lower()
+
+    if use_port_list == 'yes':
+        port_list = input("Enter the port list (comma-separated): ")
+        port_list = [int(port) for port in port_list.split(',')]
+    else:
+        port_list = range(start_port, end_port + 1)
+
+    ## Create a thread for each port in the range or in the specified port list
     threads = []
-    for port in range(start_port, end_port + 1):
+    for port in port_list:
         thread = threading.Thread(target=specific_ports, args=(target, port, True))
         threads.append(thread)
         thread.start()
 
-    ##Wait for all threads to finish
+    ## Wait for all threads to finish
     for thread in threads:
         thread.join()
 
-    ##Filter results based on user input
-    for port in range(start_port, end_port + 1):
+    ## Filter results based on user input
+    for port in port_list:
         if filter_option == 'open':
             specific_ports(target, port, True)
         elif filter_option == 'closed':
@@ -166,23 +185,12 @@ def single_scan(target, port):
 
 
 ###################################################################################################################################
-##3. Custom Port Lists 
-
-
-
-
-
-
-###################################################################################################################################
 ##4. User-Friendly CLI
 
 
 
 ###################################################################################################################################
 ##5. Support for Scanning Multiple Targets 
-
-
-
 
 
 
