@@ -140,18 +140,20 @@ def single_scan(target, port):
 
         ##Attempt to connect to the target and port
         result = sock.connect((target, port))
-        print(f"Port {port} was found. | Would you like to restart?")
+        print(f"Port {port} was found.")
 
     except ConnectionRefusedError:
-        print(f"Port {port} is closed | Error: ConnectionRefusedError. | Would you like to restart?")
+        print(f"Port {port} is closed | Error: ConnectionRefusedError.")
 
     except socket.timeout:
-        print(f"Port {port} timed out | Error: socket.timeout. | Would you like to restart?")
+        print(f"Port {port} timed out | Error: socket.timeout.")
 
     except Exception as e:
         print(f"An error occurred while scanning port {port}: {e} | Would you like to restart?")
 
     finally:
+        print("Would you like to restart?")
+        restart_program()
         sock.close()
 
 
