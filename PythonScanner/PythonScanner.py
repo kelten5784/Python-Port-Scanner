@@ -3,7 +3,7 @@ import ipaddress
 import threading
 
 
-##Globles
+## Globals
 COMMONPORTS = [80, 443, 21, 22, 445,]
 LASTPORT = COMMONPORTS[-1]
 CHECKER = False
@@ -12,9 +12,10 @@ ENDPORT = 0
 RESTARTFLAG = False  ##Flag to control program restart
 USERLOGS = []
 ###################################################################################################################################
-##System Funcations 
+## System Functions
 
- ##Funcation to prompt user to savefile
+###################################################################################################################################
+ ## 7. Function to prompt user to savefile
 def save_file(log_entries):
     filename = input("Enter the filename to save the port list to (e.g., log.txt, log.cvv, etc): ")
     with open(filename, 'w') as file:
@@ -22,7 +23,7 @@ def save_file(log_entries):
             file.write(entry)
     print(f"Scanner file saved to {filename}")
 
-##Funcation to prompt user to restart
+## Function to prompt user to restart
 def restart_program():
     global USERLOGS  # Access the global variable
     ##Loop to allow the user to enter a valid reset option
@@ -42,7 +43,8 @@ def restart_program():
         else:
             print("Invalid option. Please enter 'yes' or 'no.'")
 
-
+###################################################################################################################################
+## 10. Function to define IP and IP range
 def parse_targets(user_target):
     more_targets = []
 
@@ -76,7 +78,7 @@ def parse_targets(user_target):
 
 
 ###################################################################################################################################
-##1. Port Filtering
+## 1. Port Filtering
 def specific_ports(target, port, is_open):
     try:
         ##Creates a socket object
@@ -113,7 +115,8 @@ def specific_ports(target, port, is_open):
         sock.close()
 
 ###################################################################################################################################
-##2. Scan Modes ##3. Custom Port Lists 
+##2. Scan Modes 
+##3. Custom Port Lists 
 def quick_scan(target, filter_option, RESTARTFLAG):
 
     threads = []
@@ -139,7 +142,7 @@ def quick_scan(target, filter_option, RESTARTFLAG):
     if RESTARTFLAG:
         restart_program()
 
-##Main Funcation for a through scan
+##Main Function for a thorough scan
 def thorough_scan(target, STARTPORT, ENDPORT, filter_option):
     global LASTPORT
     global CHECKER
@@ -227,63 +230,6 @@ def single_scan(target, port, RESTARTFLAG):
 
     finally:
         sock.close()
-
-
-
-
-###################################################################################################################################
-##4. User-Friendly CLI
-
-
-
-###################################################################################################################################
-##5. Support for Scanning Multiple Targets 
-
-
-
-
-###################################################################################################################################
-##6. Logging and Reporting
-
-
-
-
-
-
-
-
-###################################################################################################################################
-##7. Output Customizaon
-
-
-
-
-
-###################################################################################################################################
-##8. Port Range Validaon
-
-
-
-
-
-###################################################################################################################################
-##9. Service Detecon
-
-
-
-
-
-
-###################################################################################################################################
-##11. Security Scanning
-
-
-
-
-
-
-
-
 
 ###################################################################################################################################
 def main():
