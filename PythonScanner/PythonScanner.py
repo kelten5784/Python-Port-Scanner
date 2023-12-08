@@ -7,6 +7,8 @@ import threading
 COMMONPORTS = [80, 443, 21, 22, 445,]
 LASTPORT = COMMONPORTS[-1]
 CHECKER = False
+STARTPORT = 0  
+ENDPORT = 0  
 
 ##Funcation to prompt user to savefile
 def save_file():
@@ -22,13 +24,31 @@ def restart_program():
         if restart == 'yes':
             main()
         elif restart == 'no':
-            save_log = input("Do you want to save the console log to a scan list file? (yes/no): ").lower()
+            save_log = input("Do you want to save the console log to a scan list file? (yes/no): \n").lower()
             if save_log == 'yes':
                 save_file()
-            print("Exiting the program.")
+            print("Saving and Exiting the program.")
+            if save_log == 'no':
+                print("Exiting the program.")
+                main()
             return  ## Add a return statement to exit the loop
         else:
             print("Invalid option. Please enter 'yes' or 'no.'")
+
+def parse_targets(user_target):
+    targets = [t.strip() for t in user_target.split(',')]
+    more_targets = []
+
+    for target in targets:
+        if '-' in target:
+            start, end = target.split('-')
+            start_ip = ipaddress.ip_address(start.strip())
+            end_ip = ipaddress.ip_address(end.strip())
+            more_targets.extend(str(ip) for ip in range(start_ip, end_ip + 1))
+        else:
+            more_targets.append(target)
+
+    return more_targets
 
 ###################################################################################################################################
 ##1. Port Filtering
@@ -36,25 +56,25 @@ def specific_ports(target, port, is_open):
     try:
         ##Creates a socket object
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.settimeout(1)  # Set a timeout for the connection attempt
+        sock.settimeout(5)  # Set a timeout for the connection attempt
 
         ##Attempt to connect to the target and port
         result = sock.connect((target, port))
 
         ##Runs if the socket is open(bool) | EXECPTION if connection is refused 
         if is_open:
-            print(f"Port {port} is open")
+            print(f"Port {port} is open\n")
 
     except ConnectionRefusedError:
         if not is_open:
-            print(f"Port {port} is closed | Error: ConnectionRefusedError")
+            print(f"Port {port} is closed | Error: ConnectionRefusedError\n")
 
     except socket.timeout:
         if not is_open:
-            print(f"Port {port} timed out | Error: socket.timeout")
+            print(f"Port {port} timed out | Error: socket.timeout\n")
 
     except Exception as e:
-        print(f"Port {port} Had An Unknown error occurred: {e}")
+        print(f"Port {port} Had An Unknown error occurred: {e}\n")
 
     finally:
         sock.close()
@@ -75,6 +95,7 @@ def quick_scan(target, filter_option):
 
     ##Filter results based on user input
     for port in COMMONPORTS:
+
         if filter_option == 'open':
             specific_ports(target, port, True)
         elif filter_option == 'closed':
@@ -83,9 +104,14 @@ def quick_scan(target, filter_option):
             single_scan(target, port)
         else:
             print("Invalid filter option. Please enter 'open', 'closed', or 'all'.")
+    if port == LASTPORT:
+        restart_program()
 
 ##Main Funcation for a through scan
-def thorough_scan(target, start_port, end_port, filter_option):
+def thorough_scan(target, STARTPORT, ENDPORT, filter_option):
+    global LASTPORT
+    global CHECKER
+
     use_port_list = input("Do you want to use a port list? (yes/no): ").lower()
 
     if use_port_list == 'yes':
@@ -94,33 +120,32 @@ def thorough_scan(target, start_port, end_port, filter_option):
         CHECKER = True
     else:
         ##Validates whether the input is in proper configuration with possible ports (0-65535)
-        start_port = int(input("Enter the initial port: "))
-        if start_port <= 0 or start_port > 65535:
+        STARTPORT = int(input("Enter the initial port: "))
+        if STARTPORT <= 0 or STARTPORT > 65535:
             print("Invalid Start Port")
             restart_program()
 
-        end_port = int(input("Enter the last port: "))
-        if end_port <= 0 or end_port > 65535:
+        ENDPORT = int(input("Enter the last port: "))
+        if ENDPORT <= 0 or ENDPORT > 65535:
             print("Invalid End Port")
             restart_program()
 
         CHECKER = True
-        LASTPORT = end_port
-        port_list = range(start_port, end_port + 1)
+        LASTPORT = ENDPORT
+        port_list = range(STARTPORT, ENDPORT + 1)
 
-
-    ## Create a thread for each port in the range or in the specified port list
+    ##Create a thread for each port in the range or in the specified port list
     threads = []
     for port in port_list:
         thread = threading.Thread(target=specific_ports, args=(target, port, True))
         threads.append(thread)
         thread.start()
 
-    ## Wait for all threads to finish
+    ##Wait for all threads to finish
     for thread in threads:
         thread.join()
 
-    ## Filter results based on user input
+    ##Filter results based on user input
     for port in port_list:
         if filter_option == 'open':
             specific_ports(target, port, True)
@@ -129,17 +154,22 @@ def thorough_scan(target, start_port, end_port, filter_option):
         elif filter_option == 'all':
             single_scan(target, port)
         else:
-            print("Invalid filter option. Please enter 'open', 'closed', or 'all'.")
+            print("Invalid filter option. Please enter 'open', 'closed', or 'all'.\n")
+
+    ##Update LASTPORT for thorough scan
+    LASTPORT = ENDPORT 
 
 ##Scans single port
 def single_scan(target, port):
     try:
-        # Create a socket object
+        ##Create a socket object
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.settimeout(1)  # Set a timeout for the connection attempt
+        sock.settimeout(3)  # Set a timeout for the connection attempt
 
-        # Attempt to connect to the target and port
+        ##Attempt to connect to the target and port
         result = sock.connect((target, port))
+        print(f"Port {port} is open")
+
     except ConnectionRefusedError:
         print(f"Port {port} is closed | Error: ConnectionRefusedError")
 
@@ -152,9 +182,9 @@ def single_scan(target, port):
     finally:
         sock.close()
 
-        # Check if the current port is the last one
-    if port == LASTPORT:
-        restart_program()
+        ##Check if the current port is the last one
+        if port == LASTPORT:
+            restart_program()
 
 
 ###################################################################################################################################
@@ -222,39 +252,45 @@ def single_scan(target, port):
 
 
 ###################################################################################################################################
-## MAIN FUNCATION
+## MAIN FUNCATION 
 def main():
+    global STARTPORT 
+    global ENDPORT  
+    global CHECKER
 
-    start_port = 0
-    end_port = 0
-    target = input("Enter the target IP address or hostname: ")
+    user_target = input("Enter the target IP addresses or hostnames (comma-separated or IP range): ")
+    targets = parse_targets(user_target)
     filter_option = input("Enter filter: (open/closed/all): ").lower()
 
-    ##Validate whether the input is a valid IP address
-    while True:
-        try:
-            ipaddress.ip_address(target)
-            break  ##Exit loop if the user input is a valid IP address
-        except ValueError:
-            print("Invalid IP address format. Please enter a valid IP address. Example (192.168.1.1)")
-            target = input("Enter the target IP address or hostname: ")
+    # Validate whether the inputs are valid IP addresses or hostnames
+    for target in targets:
+        while True:
+            try:
+                ipaddress.ip_address(target)
+                break  # Exit loop if the user input is a valid IP address
+            except ValueError:
+                print(f"Invalid IP address or hostname format: {target}")
+                user_target = input("Enter the target IP addresses or hostnames (comma-separated or IP range): ")
+                targets = parse_targets(user_target)
 
-    ##Prompts user for their scan mode and runs the scan type
+    # Prompts user for their scan mode and runs the scan type
     scan_mode = input("Enter scan mode (quick/thorough): ").lower()
 
-    if scan_mode == 'quick':
-        quick_scan(target, filter_option)
-        print(f"Scanning ports {start_port} to {end_port} on {target}...\n")
+    # Create a thread for each target in the list
+    threads = []
+    for target in targets:
+        if scan_mode == 'quick':
+            thread = threading.Thread(target=quick_scan, args=(target, filter_option))
+        elif scan_mode == 'thorough':
+            # Assume that STARTPORT, ENDPORT, and CHECKER are defined elsewhere in your code
+            thread = threading.Thread(target=thorough_scan, args=(target, STARTPORT, ENDPORT, filter_option))
+        else:
+            print("Invalid input for our scan mode option. Please enter 'quick' or 'thorough'\n")
+            restart_program()
 
-    elif scan_mode == 'thorough':
-        thorough_scan(target, start_port, end_port, filter_option)
-        if CHECKER:
-            thorough_scan(target, start_port, end_port, filter_option)
-            print(f"Scanning ports {start_port} to {end_port} on {target}...\n")
+        threads.append(thread)
+        thread.start()
 
-    else:
-        print("Invalid input for our scan mode option. Please enter 'quick' or 'thorough'")
-        restart_program()
 if __name__ == "__main__":
     main()
 ###################################################################################################################################
