@@ -10,15 +10,19 @@ CHECKER = False
 STARTPORT = 0  
 ENDPORT = 0  
 
-##Funcation to prompt user to savefile
+###################################################################################################################################
+###System Funcations 
+
+ ##Funcation to prompt user to savefile
 def save_file():
     filename = input("Enter the filename to save the port list to (e.g., log.txt): ")
     with open(filename, 'w') as file:
         file.write()
     print(f"Scanner file saved to {filename}")
 
-##Loop to allow the user to enter a valid reset option
+ ##Funcation to prompt user to restart
 def restart_program():
+    ##Loop to allow the user to enter a valid reset option
     while True:
         restart = input("Do you want to try again? (yes/no): ").lower()
         if restart == 'yes':
@@ -31,7 +35,7 @@ def restart_program():
             if save_log == 'no':
                 print("Exiting the program.")
                 main()
-            return  ## Add a return statement to exit the loop
+            return  ##Add a return statement to exit the loop
         else:
             print("Invalid option. Please enter 'yes' or 'no.'")
 
