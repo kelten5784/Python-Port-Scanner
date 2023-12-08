@@ -11,7 +11,7 @@ STARTPORT = 0
 ENDPORT = 0  
 
 ###################################################################################################################################
-###System Funcations 
+##System Funcations 
 
  ##Funcation to prompt user to savefile
 def save_file():
@@ -34,10 +34,11 @@ def restart_program():
             print("Saving and Exiting the program.")
             if save_log == 'no':
                 print("Exiting the program.")
-                main()
             return  ##Add a return statement to exit the loop
         else:
             print("Invalid option. Please enter 'yes' or 'no.'")
+
+
 
 def parse_targets(user_target):
     targets = [t.strip() for t in user_target.split(',')]
@@ -46,13 +47,14 @@ def parse_targets(user_target):
     for target in targets:
         if '-' in target:
             start, end = target.split('-')
-            start_ip = ipaddress.ip_address(start.strip())
-            end_ip = ipaddress.ip_address(end.strip())
-            more_targets.extend(str(ip) for ip in range(start_ip, end_ip + 1))
+            start_ip = int(ipaddress.IPv4Address(start.strip()))
+            end_ip = int(ipaddress.IPv4Address(end.strip()))
+            more_targets.extend(str(ipaddress.IPv4Address(ip)) for ip in range(start_ip, end_ip + 1))
         else:
             more_targets.append(target)
 
     return more_targets
+
 
 ###################################################################################################################################
 ##1. Port Filtering
@@ -116,6 +118,8 @@ def thorough_scan(target, STARTPORT, ENDPORT, filter_option):
     global LASTPORT
     global CHECKER
 
+    restart_program_flag = False  ##Flag to control program restart
+
     use_port_list = input("Do you want to use a port list? (yes/no): ").lower()
 
     if use_port_list == 'yes':
@@ -123,16 +127,15 @@ def thorough_scan(target, STARTPORT, ENDPORT, filter_option):
         port_list = [int(port) for port in port_list.split(',')]
         CHECKER = True
     else:
-        ##Validates whether the input is in proper configuration with possible ports (0-65535)
         STARTPORT = int(input("Enter the initial port: "))
         if STARTPORT <= 0 or STARTPORT > 65535:
             print("Invalid Start Port")
-            restart_program()
+            restart_program_flag = True  ##Set the flag to restart the program
 
         ENDPORT = int(input("Enter the last port: "))
         if ENDPORT <= 0 or ENDPORT > 65535:
             print("Invalid End Port")
-            restart_program()
+            restart_program_flag = True  ##Set the flag to restart the program
 
         CHECKER = True
         LASTPORT = ENDPORT
@@ -161,7 +164,11 @@ def thorough_scan(target, STARTPORT, ENDPORT, filter_option):
             print("Invalid filter option. Please enter 'open', 'closed', or 'all'.\n")
 
     ##Update LASTPORT for thorough scan
-    LASTPORT = ENDPORT 
+    LASTPORT = ENDPORT
+
+    return restart_program_flag  ##Return the flag
+
+ 
 
 ##Scans single port
 def single_scan(target, port):
@@ -266,28 +273,30 @@ def main():
     targets = parse_targets(user_target)
     filter_option = input("Enter filter: (open/closed/all): ").lower()
 
-    # Validate whether the inputs are valid IP addresses or hostnames
+    ##Validate whether the inputs are valid IP addresses or hostnames
     for target in targets:
         while True:
             try:
                 ipaddress.ip_address(target)
-                break  # Exit loop if the user input is a valid IP address
+                break  ##Exit loop if the user input is a valid IP address
             except ValueError:
                 print(f"Invalid IP address or hostname format: {target}")
                 user_target = input("Enter the target IP addresses or hostnames (comma-separated or IP range): ")
                 targets = parse_targets(user_target)
 
-    # Prompts user for their scan mode and runs the scan type
+    ##Prompts user for their scan mode and runs the scan type
     scan_mode = input("Enter scan mode (quick/thorough): ").lower()
 
-    # Create a thread for each target in the list
+    ##Create a thread for each target in the list
     threads = []
+    restart_flag = False  ##Flag to control program restart
+    thread = None  ##Initialize the variable outside the loop
+
     for target in targets:
         if scan_mode == 'quick':
             thread = threading.Thread(target=quick_scan, args=(target, filter_option))
         elif scan_mode == 'thorough':
-            # Assume that STARTPORT, ENDPORT, and CHECKER are defined elsewhere in your code
-            thread = threading.Thread(target=thorough_scan, args=(target, STARTPORT, ENDPORT, filter_option))
+            restart_flag = thorough_scan(target, STARTPORT, ENDPORT, filter_option)
         else:
             print("Invalid input for our scan mode option. Please enter 'quick' or 'thorough'\n")
             restart_program()
@@ -295,6 +304,10 @@ def main():
         threads.append(thread)
         thread.start()
 
+    if restart_flag:
+        restart_program()
+
 if __name__ == "__main__":
     main()
+
 ###################################################################################################################################
