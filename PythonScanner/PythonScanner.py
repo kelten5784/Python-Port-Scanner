@@ -92,24 +92,24 @@ def specific_scan(target, port, is_open):
         if is_open:
             message = f"Port {port} is open"
             print(message)
-            USERLOGS.append(message)
+            USERLOGS.append(message + "\n")
 
     except ConnectionRefusedError:
         if not is_open:
             message = f"Port {port} is closed"
             print(message)
-            USERLOGS.append(message)
+            USERLOGS.append(message + "\n")
 
     except socket.timeout:
         if not is_open:
             message = f"Port {port} timed out"
             print(message)
-            USERLOGS.append(message)
+            USERLOGS.append(message + "\n")
 
     except Exception as e:
         message = f"Port {port} Had An Unknown error occurred: {e}"
         print(message)
-        USERLOGS.append(message)
+        USERLOGS.append(message + "\n")
 
     finally:
         sock.close()
