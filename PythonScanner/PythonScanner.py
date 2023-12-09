@@ -83,31 +83,31 @@ def specific_scan(target, port, is_open):
     try:
         ## Creates a socket object
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.settimeout(5)  # Set a timeout for the connection attempt
+        sock.settimeout(9)  # Set a timeout for the connection attempt
 
         ## Attempt to connect to the target and port
         result = sock.connect((target, port))
 
         ## Runs if the socket is open(bool) | Exception if connection is refused
         if is_open:
-            message = f"Port {port} is open\n"
+            message = f"Port {port} is open"
             print(message)
             USERLOGS.append(message)
 
     except ConnectionRefusedError:
         if not is_open:
-            message = f"Port {port} is closed\n"
+            message = f"Port {port} is closed"
             print(message)
             USERLOGS.append(message)
 
     except socket.timeout:
         if not is_open:
-            message = f"Port {port} timed out\n"
+            message = f"Port {port} timed out"
             print(message)
             USERLOGS.append(message)
 
     except Exception as e:
-        message = f"Port {port} Had An Unknown error occurred: {e}\n"
+        message = f"Port {port} Had An Unknown error occurred: {e}"
         print(message)
         USERLOGS.append(message)
 
@@ -227,7 +227,7 @@ def main():
 
     for target in targets:
         if scan_mode == 'quick':
-            quick_scan(target, filter_option, RESTARTFLAG)
+            quick_scan(target, filter_option, RESTARTFLAG,specific_scan)
         elif scan_mode == 'thorough':
             RESTARTFLAG = thorough_scan(target, STARTPORT, ENDPORT, filter_option, specific_scan)
         else:
